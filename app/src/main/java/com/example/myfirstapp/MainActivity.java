@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -43,46 +45,39 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-    }
-
-
-    public void sendMessage(View view){
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        EditText editText = (EditText) findViewById(R.id.editTextTextPersonName);
-        String message = editText.getText().toString();
-        intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
     }
 
     public void getCurrentWeather(View view){
-
+        hideKeyboard(this);
         String endpoint = "current.json";
         EditText editText = (EditText) findViewById(R.id.editTextTextPersonName);
         String location = editText.getText().toString();
 
+
+        /** Creating query **/
         RequestParams params = new RequestParams();
         params.add("key", "8883827c647647e3bde121720223005");
         params.add("q", location);
         params.add("lang", "en");
 
+        /** Executing query **/
         RestClient.get(endpoint, params , new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 // Handle success
                 Log.i("INFO", new String(responseBody));
 
+                /** Parsing JSON response **/
                 try{
                     JSONObject resp = new JSONObject(new String(responseBody));
                     String temp = resp.getJSONObject("current").getString("temp_c");
-                    String location = resp.getJSONObject("location").getString("name");
+                    JSONObject location = resp.getJSONObject("location");
+                    String city = location.getString("name") + ", " + location.getString("country");
                     String weatherCondition = resp.getJSONObject("current").getJSONObject("condition").getString("text");
-                    String weatherConditionImg = resp.getJSONObject("current").getJSONObject("condition").getString("icon").replace("//","");
-
-                    String message = "The weather in " + location + " is: \n" + weatherCondition + " with a temperature of " + temp.replace(".0","") + "°C";
-                    //System.out.println("Il meteo a " + location + " é: " + weatherCondition + " con una temperatura di " + temp.replace(".0","") + "°C");
+                    String message = "The weather in " + city + " is: \n" + weatherCondition + " with a temperature of " + temp.replace(".0","") + "°C";
                     String code = resp.getJSONObject("current").getJSONObject("condition").getString("code");
 
+                    /** Choosing weather image according to weather code **/
                     String imgName = "";
                     if(resp.getJSONObject("current").getInt("is_day") == 1){
                         imgName += "day";
@@ -90,57 +85,31 @@ public class MainActivity extends AppCompatActivity {
                         imgName += "night";
                     }
 
-                    try{
-                        JSONArray json = new JSONArray(readJSONFromAsset());
-                        for(int i = 0; i<json.length(); i++){
-                            int jsonCode = json.getJSONObject(i).getInt("code");
-                            Log.i("JSON_CODE", Integer.toString(jsonCode));
-                            Log.i("RESP_CODE", code);
-                            boolean comp = jsonCode == Integer.parseInt(code);
-                            Log.i("COMPARE",Boolean.toString(comp));
-                            if(jsonCode==Integer.parseInt(code)){
-                                imgName += Integer.toString(json.getJSONObject(i).getInt("icon"));
-                                Log.i("IMGNAME",imgName);
-                                break;
-                            }
+                    /** Creating right image filename according to day time and weather code **/
+                    JSONArray json = new JSONArray(readJSONFromAsset());
+                    for(int i = 0; i<json.length(); i++){
+                        int jsonCode = json.getJSONObject(i).getInt("code");
+                        if(jsonCode==Integer.parseInt(code)){
+                            imgName += Integer.toString(json.getJSONObject(i).getInt("icon"));
+                            break;
                         }
-
-                    } catch (Exception e){
-                        e.printStackTrace();
                     }
 
-                    Drawable drawable = null;
-                    try {
-                        Uri uri = Uri.parse("android.resource://com.example.myfirstapp/drawable/"+imgName);
-                        InputStream inputStream = getContentResolver().openInputStream(uri);
-                        drawable = Drawable.createFromStream(inputStream, uri.toString() );
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+                    /** Setting weather image **/
+                    Uri uri = Uri.parse("android.resource://com.example.myfirstapp/drawable/"+imgName);
+                    ImageView imageView = findViewById(R.id.imageView);
+                    imageView.setImageURI(uri);
+                    imageView.setScaleX(2);
+                    imageView.setScaleY(2);
 
+                    /** Setting weather text **/
                     TextView textView = findViewById(R.id.textView2);
                     textView.setText(message);
-                    ImageView imageView = findViewById(R.id.imageView);
-                    imageView.setImageDrawable(drawable);
+
 
                 }catch(JSONException e){
                     e.printStackTrace();
                 }
-                /*List<String> list = new ArrayList<>();
-
-                try {
-                    JSONArray resp = new JSONArray(new String(responseBody));
-                    list = new ArrayList<String>();
-                    for (int i=0; i<resp.length(); i++) {
-                        JSONObject respObj = (JSONObject) resp.get(i);
-                        list.add( respObj.optString("id") + " " + respObj.optString("title"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }*/
-
-                //adapter = new RecyclerViewAdapter(getApplicationContext(), list);
-                //recyclerView.setAdapter(adapter);
             }
 
             @Override
@@ -166,15 +135,15 @@ public class MainActivity extends AppCompatActivity {
         return json;
     }
 
-    public static Drawable LoadImageFromWebOperations(String url) {
-        try {
-            InputStream is = (InputStream) new URL(url).getContent();
-            Drawable d = Drawable.createFromStream(is, "src name");
-            return d;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
         }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
 
