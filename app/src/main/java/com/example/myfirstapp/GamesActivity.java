@@ -46,21 +46,26 @@ public class GamesActivity extends AppCompatActivity {
                 Log.i("INFO", new String(responseBody));
                 try{
                     JSONObject json = new JSONObject(new String(responseBody));
-
                     JSONArray response = json.getJSONArray("response");
-                    System.out.print("N games found: " + response.length());
-                    for(int i = 0; i<response.length(); i++){
-                        try{
-                            Match match = new Match(response.getJSONObject(i));
-                            TextView textView = new TextView(context);
-                            String game = match.toString();
-                            System.out.println(game);
-                            textView.setText(game);
-                            linearLayout.addView(textView);
-                        }catch (Exception e){
-                            e.printStackTrace();
+                    if(response.length() == 0){
+                        TextView textView = new TextView(context);
+                        String error = "Sorry, no matches were found!";
+                        textView.setText(error);
+                        linearLayout.addView(textView);
+                    } else {
+                        System.out.print("N games found: " + response.length());
+                        for(int i = 0; i<response.length(); i++) {
+                            try {
+                                Match match = new Match(response.getJSONObject(i));
+                                TextView textView = new TextView(context);
+                                String game = match.toString();
+                                System.out.println(game);
+                                textView.setText(game);
+                                linearLayout.addView(textView);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-
 //                        String homeTeam = response.getJSONObject(i).getJSONObject("teams").getJSONObject("home").getString("name");
 //                        String awayTeam = response.getJSONObject(i).getJSONObject("teams").getJSONObject("away").getString("name");
 

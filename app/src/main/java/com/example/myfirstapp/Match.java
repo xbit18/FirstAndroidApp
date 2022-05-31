@@ -227,17 +227,17 @@ public class Match {
         referee = json.getJSONObject("fixture").getString("referee");
         timezone = json.getJSONObject("fixture").getString("timezone");
         firstPeriod = json.getJSONObject("fixture").getJSONObject("periods").getLong("first");
-        secondPeriod = json.getJSONObject("fixture").getJSONObject("periods").getLong("second");
+        secondPeriod = json.getJSONObject("fixture").getJSONObject("periods").optLong("second");
         venueId = json.getJSONObject("fixture").getJSONObject("venue").getInt("id");
         venueName = json.getJSONObject("fixture").getJSONObject("venue").getString("name");
         venueCity = json.getJSONObject("fixture").getJSONObject("venue").getString("city");
         statusLong = json.getJSONObject("fixture").getJSONObject("status").getString("long");
         statusShort = json.getJSONObject("fixture").getJSONObject("status").getString("short");
         statusElapsed = json.getJSONObject("fixture").getJSONObject("status").getInt("elapsed");
-        leagueId = json.getJSONObject("fixture").getJSONObject("league").getInt("id");
-        leagueName = json.getJSONObject("fixture").getJSONObject("league").getString("name");
-        homeGoals = json.getJSONObject("fixture").getJSONObject("goals").getInt("home");
-        awayGoals = json.getJSONObject("fixture").getJSONObject("goals").getInt("away");
+        leagueId = json.getJSONObject("league").getInt("id");
+        leagueName = json.getJSONObject("league").getString("name");
+        homeGoals = json.getJSONObject("goals").getInt("home");
+        awayGoals = json.getJSONObject("goals").getInt("away");
     }
 
     @Override
