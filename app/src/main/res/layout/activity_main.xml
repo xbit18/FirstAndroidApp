@@ -58,4 +58,13 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         tools:srcCompat="@tools:sample/avatars" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="getGames"
+        android:text="Button"
+        tools:layout_editor_absoluteX="30dp"
+        tools:layout_editor_absoluteY="664dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

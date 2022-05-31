@@ -1,5 +1,6 @@
 package com.example.myfirstapp;
 
+import androidx.annotation.ContentView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void getCurrentWeather(View view){
         hideKeyboard(this);
-        String endpoint = "current.json";
+        String endpoint = "http://api.weatherapi.com/v1/current.json";
         EditText editText = (EditText) findViewById(R.id.editTextTextPersonName);
         String location = editText.getText().toString();
 
@@ -144,6 +145,11 @@ public class MainActivity extends AppCompatActivity {
             view = new View(activity);
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public void getGames(View view){
+        Intent intent = new Intent(this, GamesActivity.class);
+        startActivity(intent);
     }
 }
 
